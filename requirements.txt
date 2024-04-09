@@ -1,4 +1,4 @@
 click
-prompt_toolkit
 gpt4all
 Jinja2
+openai
