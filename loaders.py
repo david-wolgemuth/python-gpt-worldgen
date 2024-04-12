@@ -1,8 +1,11 @@
 from typing import List
 import os
 import yaml
+import re
 
 from models import Event, Period, Build
+
+FINALIZED_PERIOD = re.compile(r"^\d{4}-.*$")
 
 
 def load_event(event_path: str) -> Event:
@@ -39,7 +42,11 @@ def load_period(period_path: str) -> Period:
     """
     events = load_events(period_path)
 
-    with open(os.path.join(period_path, "period.yaml"), "r") as f:
+    return _load_period(os.path.join(period_path, "period.yaml"), events)
+
+
+def _load_period(full_period_path: str, events) -> Period:
+    with open(full_period_path, "r") as f:
         data = yaml.load(f, Loader=yaml.FullLoader)
         return Period(
             id=data["id"],
@@ -57,7 +64,7 @@ def load_periods(build_path: str) -> List[Period]:
     periods_path = os.path.join(build_path, "periods")
     for period in os.listdir(periods_path):
         period_path = os.path.join(periods_path, period)
-        if os.path.isdir(period_path):
+        if os.path.isdir(period_path) and FINALIZED_PERIOD.match(period):
             periods.append(load_period(period_path))
 
     return sorted(periods, key=lambda period: period.id)
